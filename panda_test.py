@@ -20,3 +20,17 @@ class PropertiesTest(unittest.TestCase):
 
     def test_api_port(self):
         eq_(self.i.api_port, 80)
+
+class SignatureTest(unittest.TestCase):
+    def setUp(self):
+        self.i = panda.Panda(access_key='my_access_key', secret_key='my_secret_key', api_host='myapihost', api_port=85, cloud_id='my_cloud_id')
+
+    def test_simple_signed_parameters(self):
+        result = self.i.signed_params('POST', '/videos.json', {}, '2009-11-04T17:54:11+00:00')
+        expectation = {
+            'access_key': "my_access_key",
+            'timestamp': "2009-11-04T17:54:11+00:00",
+            'cloud_id': 'my_cloud_id',
+            'signature': 'TI2n/dsSllxFhxcEShRGKWtDSqxu+kuJUPs335NavMo=',
+        }
+        eq_(result, expectation)

@@ -34,5 +34,5 @@ def generate_signature(verb, request_uri, host, secret_key, params={}):
 
 def canonical_querystring(params):
     ordered_params = sorted([(k, v) for k, v in params.iteritems()])
-    assign_strs = map(lambda pair: urllib.quote(pair[0]) + '=' + urllib.quote(pair[1]), ordered_params)
+    assign_strs = map(lambda pair: urllib.quote(str(pair[0])) + '=' + urllib.quote(str(pair[1])), ordered_params)
     return '&'.join(assign_strs)

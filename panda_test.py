@@ -46,3 +46,15 @@ class SignatureTest(unittest.TestCase):
             'param2': 'two',
         }
         eq_(result, expectation)
+
+    def test_signed_params_with_non_string_arguments(self):
+        result = self.i.signed_params('POST', '/videos.json', {1: 'one', 'param2': 2}, '2009-11-04T17:54:11+00:00')
+        expectation = {
+            'access_key': "my_access_key",
+            'timestamp': "2009-11-04T17:54:11+00:00",
+            'cloud_id': 'my_cloud_id',
+            'signature': 'n/tGZ9Pt70k+pprejGf8Khzxw9R1cAfrklh8lcjn+W0=',
+            1: 'one',
+            'param2': 2,
+        }
+        eq_(result, expectation)

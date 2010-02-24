@@ -1,6 +1,6 @@
 import hashlib, hmac, base64
 from datetime import datetime
-import urllib
+import urllib, httplib
 
 class Panda(object):
     def __init__(self, cloud_id, access_key, secret_key, api_host='api.pandastream.com', api_port=80):
@@ -9,6 +9,7 @@ class Panda(object):
         self.secret_key = secret_key
         self.api_host = api_host
         self.api_port = api_port
+        self.api_version = 2
 
     def signed_params(self, verb, request_uri, params={}, timestamp_str=None):
         auth_params = params.copy()
@@ -19,6 +20,47 @@ class Panda(object):
         additional_args.update(auth_params)
         auth_params['signature'] = generate_signature(verb, request_uri, self.api_host, self.secret_key, additional_args)
         return auth_params
+
+    def api_url(self):
+        return 'http://' + self.api_host_and_port() + self.api_path()
+
+    def api_host_and_port(self):
+        ret = self.api_host
+        if str(self.api_post) != '80':
+            ret += ':' + self.api_host
+        return ret
+
+    def api_path(self):
+        return '/v' + str(self.api_version)
+
+    def get(self, request_path, params={}):
+        return self._http_request('GET', request_path, params)
+
+    def _http_request(self, verb, path, query={}, data={}):
+        verb = verb.upper()
+        path = canonical_path(path)
+        suffix = ''
+        signed_data = None
+
+        if verb == 'POST' or verb == 'PUT':
+            signed_data = self._signed_query(verb, path, data)
+        else:
+            signed_query_string = self._signed_query(verb, path, query)
+            suffix = '?' + signed_query_string
+
+        url = self.api_path() + path + suffix
+
+        http = httplib.HTTPConnection(self.api_host, self.api_port)
+        print verb
+        print url
+        print signed_data
+        http.set_debuglevel(4)
+        http.request(verb, url, signed_data)
+        return http.getresponse().read()
+
+    def _signed_query(self, verb, request_path, params={}, timestamp=None):
+        return dict2query(self.signed_params(verb, request_path, params, timestamp))
+
 
 def generate_signature(verb, request_uri, host, secret_key, params={}):
     query_string = canonical_querystring(params)
@@ -40,3 +82,12 @@ def canonical_querystring(params):
 def urlescape(s):
     s = unicode(s)
     return urllib.quote(s).replace("%7E", "~").replace(' ', '%20')
+
+def canonical_path(path):
+    return '/' + path.strip(' \t\n\r\0\x0B/')
+
+def dict2query(d):
+    pairs = []
+    for k, v in d.iteritems():
+        pairs.append(urlescape(k) + '=' + urlescape(v))
+    return '&'.join(pairs)

@@ -36,14 +36,25 @@ class Panda(object):
     def get(self, request_path, params={}):
         return self._http_request('GET', request_path, params)
 
+    def post(self, request_path, params={}):
+        return self._http_request('POST', request_path, {}, params)
+
+    def put(self, request_path, params={}):
+        return self._http_request('PUT', request_path, {}, params)
+
+    def delete(self, request_path, params={}):
+        return self._http_request('DELETE', request_path, params)
+
     def _http_request(self, verb, path, query={}, data={}):
         verb = verb.upper()
         path = canonical_path(path)
         suffix = ''
         signed_data = None
+        headers = {}
 
         if verb == 'POST' or verb == 'PUT':
             signed_data = self._signed_query(verb, path, data)
+            headers = {"Content-type": "application/x-www-form-urlencoded"}
         else:
             signed_query_string = self._signed_query(verb, path, query)
             suffix = '?' + signed_query_string
@@ -51,11 +62,7 @@ class Panda(object):
         url = self.api_path() + path + suffix
 
         http = httplib.HTTPConnection(self.api_host, self.api_port)
-        print verb
-        print url
-        print signed_data
-        http.set_debuglevel(4)
-        http.request(verb, url, signed_data)
+        http.request(verb, url, signed_data, headers)
         return http.getresponse().read()
 
     def _signed_query(self, verb, request_path, params={}, timestamp=None):

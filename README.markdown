@@ -65,3 +65,24 @@ Finally, you may want to clean up after your tests:
 
     panda.delete('/videos/VIDEO_ID.json');
     panda.delete('/profiles/PROFILE_ID.json');
+
+
+Generating signatures
+---------------------
+
+All requests to your Panda cloud are signed using HMAC-SHA256, based on a timestamp and your Panda secret key. This is handled transparently. However, sometimes you will want to generate only this signature, in order to make a request by means other than this library. This is the case when using the [JavaScript panda_uploader](http://github.com/newbamboo/panda_uploader).
+
+To do this, a method `signed_params()` is supported:
+
+    panda.signed_params('POST', '/videos.json')
+    # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',
+    # 'cloud_id': 'your-cloud-id',
+    # 'signature': 'LejCdm0O83+jk6/Q5SfGmk14WTO1pB6Sh6Z5eA2w5C0=',
+    # 'timestamp': '2010-02-26T15:01:46.221513'}
+
+    panda.signed_params('GET', '/videos.json', {'some_params': 'some_value'})
+    # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',
+    #  'cloud_id': 'b8d40d6b9265b610921e6d05e7ac12ef',
+    #  'signature': 'uHnGZ+kI9mT3C4vW71Iop9z2N7UKCv38v2l2dvREUIQ=',
+    #  'some_param': 'some_value',
+    #  'timestamp': '2010-02-26T15:04:27.039620'}

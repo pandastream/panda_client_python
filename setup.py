@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='panda',
-    version='0.1',
+    version='0.1.1',
     description='A Python implementation of the Panda REST interface',
     author='New Bamboo',
     author_email='info@new-bamboo.co.uk',

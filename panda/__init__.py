@@ -26,7 +26,7 @@ class Panda(object):
 
     def api_host_and_port(self):
         ret = self.api_host
-        if str(self.api_post) != '80':
+        if str(self.api_port) != '80':
             ret += ':' + self.api_host
         return ret
 

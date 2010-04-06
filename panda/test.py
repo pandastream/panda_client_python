@@ -4,7 +4,7 @@ import panda
 
 class PropertiesTest(unittest.TestCase):
     def setUp(self):
-        self.i = panda.Panda(cloud_id='my-cloud-id', access_key='my-access-key', secret_key='my-secret-key')
+        self.i = _panda_instance()
 
     def test_cloud_id(self):
         eq_(self.i.cloud_id, 'my-cloud-id')
@@ -24,7 +24,7 @@ class PropertiesTest(unittest.TestCase):
 
 class UtilsTest(unittest.TestCase):
     def setUp(self):
-        self.i = panda.Panda(cloud_id='my-cloud-id', access_key='my-access-key', secret_key='my-secret-key')
+        self.i = _panda_instance()
 
     def test_api_url(self):
         eq_(self.i.api_url(), 'http://api.pandastream.com/v2')
@@ -82,3 +82,6 @@ class SignatureTest(unittest.TestCase):
 class TimestampTest(unittest.TestCase):
     def test_timestamp_includes_timezone(self):
         ok_(re.search(':\d\d(\.\d+)?(\+|-)\d\d:\d\d$', panda.generate_timestamp()))
+
+def _panda_instance():
+    return panda.Panda(cloud_id='my-cloud-id', access_key='my-access-key', secret_key='my-secret-key')

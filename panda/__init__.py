@@ -1,5 +1,5 @@
 import hashlib, hmac, base64
-from datetime import datetime
+from datetime import datetime, tzinfo, timedelta
 import urllib, httplib
 
 class Panda(object):
@@ -15,7 +15,7 @@ class Panda(object):
         auth_params = params.copy()
         auth_params['cloud_id'] = self.cloud_id
         auth_params['access_key'] = self.access_key
-        auth_params['timestamp'] = timestamp_str or datetime.now().isoformat()
+        auth_params['timestamp'] = timestamp_str or generate_timestamp()
         additional_args = auth_params.copy()
         additional_args.update(auth_params)
         auth_params['signature'] = generate_signature(verb, request_uri, self.api_host, self.secret_key, additional_args)
@@ -98,3 +98,18 @@ def dict2query(d):
     for k, v in d.iteritems():
         pairs.append(urlescape(k) + '=' + urlescape(v))
     return '&'.join(pairs)
+
+def generate_timestamp():
+    return datetime.now(UTC()).isoformat()
+
+class UTC(tzinfo):
+    """UTC"""
+
+    def utcoffset(self, dt):
+        return timedelta(0)
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return timedelta(0)

@@ -1,4 +1,4 @@
-import unittest
+import unittest, re
 from nose.tools import *
 import panda
 
@@ -78,3 +78,7 @@ class SignatureTest(unittest.TestCase):
             'space': ' ',
         }
         eq_(result, expectation)
+
+class TimestampTest(unittest.TestCase):
+    def test_timestamp_includes_timezone(self):
+        ok_(re.search(':\d\d(\.\d+)?(\+|-)\d\d:\d\d$', panda.generate_timestamp()))

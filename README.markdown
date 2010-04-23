@@ -72,7 +72,7 @@ Generating signatures
 
 All requests to your Panda cloud are signed using HMAC-SHA256, based on a timestamp and your Panda secret key. This is handled transparently. However, sometimes you will want to generate only this signature, in order to make a request by means other than this library. This is the case when using the [JavaScript panda_uploader](http://github.com/newbamboo/panda_uploader).
 
-To do this, a method `signed_params()` is supported:
+To do this, a method `signed_params()` is provided:
 
     panda.signed_params('POST', '/videos.json')
     # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',

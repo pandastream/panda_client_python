@@ -68,14 +68,15 @@ class SignatureTest(unittest.TestCase):
         eq_(result, expectation)
 
     def test_signed_params_with_difficult_characters(self):
-        result = self.i.signed_params('POST', '/videos.json', {'tilde': '~', 'space': ' '}, '2009-11-04T17:54:11+00:00')
+        result = self.i.signed_params('POST', '/videos.json', {'tilde': '~', 'space': ' ', 'slash': '/'}, '2009-11-04T17:54:11+00:00')
         expectation = {
             'access_key': "my_access_key",
             'timestamp': "2009-11-04T17:54:11+00:00",
             'cloud_id': 'my_cloud_id',
-            'signature': 'w5P9+xPpQpRlweTh0guFYqQOmF+ZuTKXCmaKpUP3sH0=',
+            'signature': 'DHf9ERJmKQbcu8MCLP1Evv3BV2yIQo15MoTe9YV/rs8=',
             'tilde': '~',
             'space': ' ',
+            'slash': '/',
         }
         eq_(result, expectation)
 

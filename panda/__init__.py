@@ -88,7 +88,7 @@ def canonical_querystring(params):
 
 def urlescape(s):
     s = unicode(s)
-    return urllib.quote(s).replace("%7E", "~").replace(' ', '%20')
+    return urllib.quote(s).replace("%7E", "~").replace(' ', '%20').replace('/', '%2F')
 
 def canonical_path(path):
     return '/' + path.strip(' \t\n\r\0\x0B/')

@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
     name='panda',
-    version='0.1.2',
+    version='0.1.3',
     description='A Python implementation of the Panda REST interface',
     author='New Bamboo',
     author_email='info@new-bamboo.co.uk',
-    url='http://account.pandastream.com',
+    url='http://www.pandastream.com',
     packages=['panda'],
     classifiers=[
         "License :: OSI Approved :: MIT License",

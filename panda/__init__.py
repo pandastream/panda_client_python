@@ -21,13 +21,19 @@ class Panda(object):
         auth_params['signature'] = generate_signature(verb, request_uri, self.api_host, self.secret_key, additional_args)
         return auth_params
 
+    def api_protocol(self):
+        if str(self.api_port) == '443':
+            return 'https'
+        else:
+            return 'http'
+
     def api_url(self):
-        return 'http://' + self.api_host_and_port() + self.api_path()
+        return self.api_protocol() + '://' + self.api_host_and_port() + self.api_path()
 
     def api_host_and_port(self):
         ret = self.api_host
         if str(self.api_port) != '80':
-            ret += ':' + self.api_host
+            ret += ':' + str(self.api_port)
         return ret
 
     def api_path(self):

@@ -29,6 +29,10 @@ class UtilsTest(unittest.TestCase):
     def test_api_url(self):
         eq_(self.i.api_url(), 'http://api.pandastream.com/v2')
 
+    def test_https_api_url(self):
+        self.i.api_port = 443
+        eq_(self.i.api_url(), 'https://api.pandastream.com:443/v2')
+        
 class SignatureTest(unittest.TestCase):
     def setUp(self):
         self.i = panda.Panda(access_key='my_access_key', secret_key='my_secret_key', api_host='myapihost', api_port=85, cloud_id='my_cloud_id')

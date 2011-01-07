@@ -19,7 +19,7 @@ class PropertiesTest(unittest.TestCase):
         eq_(self.i.api_host, 'api.pandastream.com')
 
     def test_api_port(self):
-        eq_(self.i.api_port, 80)
+        eq_(self.i.api_port, 443)
 
 
 class UtilsTest(unittest.TestCase):
@@ -27,7 +27,7 @@ class UtilsTest(unittest.TestCase):
         self.i = _panda_instance()
 
     def test_api_url(self):
-        eq_(self.i.api_url(), 'http://api.pandastream.com/v2')
+        eq_(self.i.api_url(), 'https://api.pandastream.com:443/v2')
 
     def test_https_api_url(self):
         self.i.api_port = 443

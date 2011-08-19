@@ -43,15 +43,15 @@ class Panda(object):
         return self._http_request('GET', request_path, params)
 
     def post(self, request_path, params={}):
-        return self._http_request('POST', request_path, {}, params)
+        return self._http_request('POST', request_path, params)
 
     def put(self, request_path, params={}):
-        return self._http_request('PUT', request_path, {}, params)
+        return self._http_request('PUT', request_path, params)
 
     def delete(self, request_path, params={}):
         return self._http_request('DELETE', request_path, params)
 
-    def _http_request(self, verb, path, query={}, data={}):
+    def _http_request(self, verb, path, data={}):
         verb = verb.upper()
         path = canonical_path(path)
         suffix = ''
@@ -62,18 +62,20 @@ class Panda(object):
             signed_data = self._signed_query(verb, path, data)
             headers = {"Content-type": "application/x-www-form-urlencoded"}
         else:
-            signed_query_string = self._signed_query(verb, path, query)
+            signed_query_string = self._signed_query(verb, path, data)
             suffix = '?' + signed_query_string
 
-        url = self.api_path() + path + suffix
+        uri = self.api_path() + path + suffix
+        if(self.api_port == 443):
+            http = httplib.HTTPSConnection(self.api_host, self.api_port)
+        else:
+            http = httplib.HTTPConnection(self.api_host, self.api_port)
 
-        http = httplib.HTTPConnection(self.api_host, self.api_port)
-        http.request(verb, url, signed_data, headers)
+        http.request(verb, uri, signed_data, headers)
         return http.getresponse().read()
 
     def _signed_query(self, verb, request_path, params={}, timestamp=None):
-        return dict2query(self.signed_params(verb, request_path, params, timestamp))
-
+        return canonical_querystring(self.signed_params(verb, request_path, params, timestamp))
 
 def generate_signature(verb, request_uri, host, secret_key, params={}):
     query_string = canonical_querystring(params)
@@ -87,11 +89,6 @@ def generate_signature(verb, request_uri, host, secret_key, params={}):
     signature = hmac.new(secret_key, string_to_sign, hashlib.sha256).digest()
     return base64.b64encode(signature).strip()
 
-def canonical_querystring(params):
-    ordered_params = sorted([(k, v) for k, v in params.iteritems()])
-    assign_strs = map(lambda pair: urlescape(pair[0]) + '=' + urlescape(pair[1]), ordered_params)
-    return '&'.join(assign_strs)
-
 def urlescape(s):
     s = unicode(s)
     return urllib.quote(s).replace("%7E", "~").replace(' ', '%20').replace('/', '%2F')
@@ -99,11 +96,24 @@ def urlescape(s):
 def canonical_path(path):
     return '/' + path.strip(' \t\n\r\0\x0B/')
 
-def dict2query(d):
-    pairs = []
-    for k, v in d.iteritems():
-        pairs.append(urlescape(k) + '=' + urlescape(v))
-    return '&'.join(pairs)
+def canonical_querystring(d):
+    def recursion(d, base=None):
+        pairs = []
+
+        ordered_params = sorted([(k, v) for k, v in d.iteritems()])
+        for key, value in ordered_params:
+            if hasattr(value, 'values'):
+                pairs += recursion(value, key)
+            else:
+                new_pair = None
+                if base:
+                    new_pair = "%s[%s]=%s" % (base, urlescape(key), urlescape(value))
+                else:
+                    new_pair = "%s=%s" % (urlescape(key), urlescape(value))
+                pairs.append(new_pair)
+        return pairs
+
+    return '&'.join(recursion(d))
 
 def generate_timestamp():
     return datetime.now(UTC()).isoformat()

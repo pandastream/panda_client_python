@@ -1,6 +1,7 @@
 import hashlib, hmac, base64
 from datetime import datetime, tzinfo, timedelta
-import urllib, httplib
+import requests
+import urllib
 
 class Panda(object):
     def __init__(self, cloud_id, access_key, secret_key, api_host='api.pandastream.com', api_port=443):
@@ -54,28 +55,18 @@ class Panda(object):
     def _http_request(self, verb, path, data={}):
         verb = verb.upper()
         path = canonical_path(path)
-        suffix = ''
-        signed_data = None
-        headers = {}
+        files = None
 
-        if verb == 'POST' or verb == 'PUT':
-            signed_data = self._signed_query(verb, path, data)
-            headers = {"Content-type": "application/x-www-form-urlencoded"}
-        else:
-            signed_query_string = self._signed_query(verb, path, data)
-            suffix = '?' + signed_query_string
-
-        uri = self.api_path() + path + suffix
-        if(self.api_port == 443):
-            http = httplib.HTTPSConnection(self.api_host, self.api_port)
-        else:
-            http = httplib.HTTPConnection(self.api_host, self.api_port)
-
-        http.request(verb, uri, signed_data, headers)
-        return http.getresponse().read()
-
-    def _signed_query(self, verb, request_path, params={}, timestamp=None):
-        return canonical_querystring(self.signed_params(verb, request_path, params, timestamp))
+        signed_params = self.signed_params(verb, path, data)
+        
+        if verb == 'POST' and data.has_key('file'):
+            files = {'file': open(data['file'], 'rb')}
+        
+        r = getattr(requests, verb.lower())('%s%s' % (self.api_url(), path), 
+                                            params=signed_params,
+                                            files=files)
+        return r.text
+    
 
 def generate_signature(verb, request_uri, host, secret_key, params={}):
     query_string = canonical_querystring(params)
@@ -102,6 +93,8 @@ def canonical_querystring(d):
 
         ordered_params = sorted([(k, v) for k, v in d.iteritems()])
         for key, value in ordered_params:
+            if key == 'file':
+                continue
             if hasattr(value, 'values'):
                 pairs += recursion(value, key)
             else:
@@ -112,7 +105,6 @@ def canonical_querystring(d):
                     new_pair = "%s=%s" % (urlescape(key), urlescape(value))
                 pairs.append(new_pair)
         return pairs
-
     return '&'.join(recursion(d))
 
 def generate_timestamp():

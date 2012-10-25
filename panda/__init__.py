@@ -58,15 +58,14 @@ class Panda(object):
         files = None
 
         signed_params = self.signed_params(verb, path, data)
-        
-        if verb == 'POST' and data.has_key('file'):
+
+        if verb == 'POST' and ('file' in data):
             files = {'file': open(data['file'], 'rb')}
-        
-        r = getattr(requests, verb.lower())('%s%s' % (self.api_url(), path), 
-                                            params=signed_params,
-                                            files=files)
+
+        requests_url = '%s%s' % (self.api_url(), path + "?" + canonical_querystring(signed_params))
+        r = getattr(requests, verb.lower())(requests_url, files=files)
         return r.text
-    
+
 
 def generate_signature(verb, request_uri, host, secret_key, params={}):
     query_string = canonical_querystring(params)
@@ -80,12 +79,15 @@ def generate_signature(verb, request_uri, host, secret_key, params={}):
     signature = hmac.new(secret_key, string_to_sign, hashlib.sha256).digest()
     return base64.b64encode(signature).strip()
 
+
 def urlescape(s):
     s = unicode(s)
     return urllib.quote(s).replace("%7E", "~").replace(' ', '%20').replace('/', '%2F')
 
+
 def canonical_path(path):
     return '/' + path.strip(' \t\n\r\0\x0B/')
+
 
 def canonical_querystring(d):
     def recursion(d, base=None):
@@ -107,8 +109,10 @@ def canonical_querystring(d):
         return pairs
     return '&'.join(recursion(d))
 
+
 def generate_timestamp():
     return datetime.now(UTC()).isoformat()
+
 
 class UTC(tzinfo):
     """UTC"""

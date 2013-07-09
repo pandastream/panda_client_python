@@ -19,6 +19,11 @@ class Panda(object):
         auth_params['timestamp'] = timestamp_str or generate_timestamp()
         additional_args = auth_params.copy()
         additional_args.update(auth_params)
+
+        # NOTE: when creating the authorisation signature for this request do not include the file parameter.
+        if 'file' in additional_args:
+            del(additional_args['file'])
+
         auth_params['signature'] = generate_signature(verb, request_uri, self.api_host, self.secret_key, additional_args)
         return auth_params
 

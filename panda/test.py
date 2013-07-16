@@ -59,6 +59,20 @@ class SignatureTest(unittest.TestCase):
         }
         eq_(result, expectation)
 
+    def test_signed_params_with_file_argument(self):
+        result = self.i.signed_params('POST', '/videos.json', {'param1': 'one', 'param2': 'two',
+            'file': 'file data'}, '2009-11-04T17:54:11+00:00')
+        expectation = {
+            'access_key': "my_access_key",
+            'timestamp': "2009-11-04T17:54:11+00:00",
+            'cloud_id': 'my_cloud_id',
+            'signature': 'w66goW6Ve5CT9Ibbx3ryvq4XM8OfIfSZe5oapgZBaUs=',
+            'param1': 'one',
+            'param2': 'two',
+            'file': 'file data'
+        }
+        eq_(result, expectation)
+
     def test_signed_params_with_non_string_arguments(self):
         result = self.i.signed_params('POST', '/videos.json', {1: 'one', 'param2': 2}, '2009-11-04T17:54:11+00:00')
         expectation = {

@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import unittest, re
 from nose.tools import *
 import panda
+
 
 class PropertiesTest(unittest.TestCase):
     def setUp(self):
@@ -32,7 +34,8 @@ class UtilsTest(unittest.TestCase):
     def test_https_api_url(self):
         self.i.api_port = 443
         eq_(self.i.api_url(), 'https://api.pandastream.com:443/v2')
-        
+
+
 class SignatureTest(unittest.TestCase):
     def setUp(self):
         self.i = panda.Panda(access_key='my_access_key', secret_key='my_secret_key', api_host='myapihost', api_port=85, cloud_id='my_cloud_id')
@@ -98,9 +101,26 @@ class SignatureTest(unittest.TestCase):
         }
         eq_(result, expectation)
 
+    def test_signed_params_with_unicode_characters(self):
+        result = self.i.signed_params(
+            'POST',
+            '/videos/upload.json',
+            {'file_name': u'original♥.mp4'},
+            '2014-12-22T17:54:11+00:00')
+        expectation = {
+            'access_key': "my_access_key",
+            'timestamp': "2014-12-22T17:54:11+00:00",
+            'cloud_id': 'my_cloud_id',
+            'signature': 'NBK3+4HtaolBLi0I1Ai9MEXQvCG+T96E7PEIKf4CMwM=',
+            'file_name': u'original♥.mp4'
+        }
+        eq_(result, expectation)
+
+
 class TimestampTest(unittest.TestCase):
     def test_timestamp_includes_timezone(self):
         ok_(re.search(':\d\d(\.\d+)?(\+|-)\d\d:\d\d$', panda.generate_timestamp()))
+
 
 def _panda_instance():
     return panda.Panda(cloud_id='my-cloud-id', access_key='my-access-key', secret_key='my-secret-key')

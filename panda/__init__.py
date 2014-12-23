@@ -86,7 +86,7 @@ def generate_signature(verb, request_uri, host, secret_key, params={}):
 
 
 def urlescape(s):
-    s = unicode(s)
+    s = unicode(s).encode('utf-8')
     return urllib.quote(s).replace("%7E", "~").replace(' ', '%20').replace('/', '%2F')
 
 

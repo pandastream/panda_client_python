@@ -68,6 +68,7 @@ class Panda(object):
             files = {'file': open(data['file'], 'rb')}
 
         requests_url = '%s%s' % (self.api_url(), path + "?" + canonical_querystring(signed_params))
+        print(requests_url)
         r = getattr(requests, verb.lower())(requests_url, files=files)
         return r.text
 

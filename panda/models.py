@@ -10,19 +10,10 @@ class PandaModel(dict):
     def to_json(self):
         return json.dumps(self)
 
-    def all(self):
-        pass
-
-    def find(self, val):
-        pass
-
-    def delete(self):
-        pass
-
 class Video(PandaModel):
     def encodings(self):
         pass
-
+    
 class Cloud(PandaModel):
     def videos(self):
         pass

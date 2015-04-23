@@ -11,7 +11,10 @@ class Retriever(object):
         return [Video(json_attr) for json_attr in json.loads(self.panda.get(self.path.format("", "")))]
 
     def find(self, val):
-        return Video(self.panda.get(self.path.format("/", val)))
+        return Video(json.loads(self.panda.get(self.path.format("/", val))))
+
+    def where(self, pred):
+        return [Video(json_attr) for json_attr in json.loads(self.panda.get(self.path.format("", ""))) if pred(json_attr)]
 
 class Panda(object):
     def __init__(self, cloud_id, access_key, secret_key, api_host='api.pandastream.com', api_port=443):

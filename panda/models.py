@@ -1,14 +1,14 @@
 import json
 
 class PandaModel(dict):
-    def __init__(self, init_json = None, *arg, **kwarg):
-        if init_json:            
-            super(PandaModel, self).__init__(json.loads(init_json) ,*arg, **kwarg)
+    def __init__(self, json_attr = None, *arg, **kwarg):
+        if json_attr:          
+            super(PandaModel, self).__init__(json_attr, *arg, **kwarg)
         else:
             super(PandaModel, self).__init__(*arg, **kwarg)
 
-    def to_json(self):
-        return json.dumps(self)
+    def to_json(self, *args, **kwargs):
+        return json.dumps(self, *args, **kwargs)
 
 class Video(PandaModel):
     def encodings(self):

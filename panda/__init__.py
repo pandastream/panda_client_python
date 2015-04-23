@@ -1,14 +1,17 @@
 from request import PandaRequest
+from models import Video, Cloud, Encoding, Profile, Notification
+import json
 
 class Retriever(object):
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, panda, path):
+        self.panda = panda
+        self.path = path
 
     def all(self):
-        return "return all %s" % self.name
+        return [Video(json_attr) for json_attr in json.loads(self.panda.get(self.path.format("", "")))]
 
     def find(self, val):
-        return "return %s with val %s" % (self.name, val)
+        return Video(self.panda.get(self.path.format("/", val)))
 
 class Panda(object):
     def __init__(self, cloud_id, access_key, secret_key, api_host='api.pandastream.com', api_port=443):
@@ -19,11 +22,11 @@ class Panda(object):
         self.api_port = api_port
         self.api_version = 2
 
-        self.video = Retriever("video")
-        self.cloud = Retriever("cloud")
-        self.encoding = Retriever("encoding")
-        self.profile = Retriever("profile")
-        self.notification = Retriever("notification")
+        self.videos = Retriever(self, "/videos{}{}.json")
+        self.clouds = Retriever(self, "/clouds{}{}.json")
+        self.encodings = Retriever(self, "/encodings{}{}.json")
+        self.profiles = Retriever(self, "/profiles{}{}.json")
+        self.notifications = Retriever(self, "/notifications{}{}.json")
 
     def credentials(self):
         cred = [
@@ -47,4 +50,3 @@ class Panda(object):
 
     def delete(self, request_path, params={}):
         return PandaRequest('DELETE', request_path, self.credentials(), params).send()
-

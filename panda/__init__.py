@@ -13,11 +13,11 @@ class Panda(object):
         self.api_port = api_port
         self.api_version = 2
 
-        self.videos = GroupRetriever(self, Video, "/videos")
-        self.clouds = GroupRetriever(self, Cloud, "/clouds")
-        self.encodings = GroupRetriever(self, Encoding, "/encodings")
-        self.profiles = GroupRetriever(self, Profile, "/profiles")
-        self.notifications = SingleRetriever(self, Notification, "/notifications")
+        self.videos = GroupRetriever(self, Video)
+        self.clouds = GroupRetriever(self, Cloud)
+        self.encodings = GroupRetriever(self, Encoding)
+        self.profiles = GroupRetriever(self, Profile)
+        self.notifications = SingleRetriever(self, Notification)
 
     def credentials(self):
         cred = [

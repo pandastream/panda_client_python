@@ -2,10 +2,13 @@ import json
 import logging
 
 class Retriever(object):
-    def __init__(self, panda, model_type, path):
+    def __init__(self, panda, model_type, path = None):
         self.panda = panda
-        self.path = path
         self.model_type = model_type
+        if path:
+            self.path = path
+        else:
+            self.path = model_type.path
 
 class GroupRetriever(Retriever):        
     def all(self): 
@@ -37,6 +40,7 @@ class PandaModel(dict):
         return json.dumps(self, *args, **kwargs)
 
 class Video(PandaModel):
+    path = "/videos"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Video, self).__init__(panda, json_attr, *args, **kwargs)
         self.panda = panda
@@ -44,6 +48,7 @@ class Video(PandaModel):
         self.metadata = SingleRetriever(panda, Metadata, "videos/{}/metadata".format(self.get("id"))).get
 
 class Cloud(PandaModel):
+    path = "/clouds"
     def videos(self):
         pass
 
@@ -51,16 +56,17 @@ class Cloud(PandaModel):
         pass
 
 class Encoding(PandaModel):
+    path = "/encodings"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
         self.video = SingleRetriever(self.panda, Video, "/videos/{}".format(self.get("video_id"))).get
         self.profile = SingleRetriever(self.panda, Video, "/profiles/{}".format(self.get("video_id"))).get
     
 class Profile(PandaModel):
-    pass
+    path = "/profiles"
 
 class Notification(PandaModel):
-    pass
+    path = "/notifications"
 
 class Metadata(PandaModel):
     pass

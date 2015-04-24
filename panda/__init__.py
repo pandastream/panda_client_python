@@ -1,20 +1,8 @@
 from request import PandaRequest
-from models import Video, Cloud, Encoding, Profile, Notification
-import json
+from models import Video, Cloud, Encoding, Profile, Notification, Retriever
+import logging
 
-class Retriever(object):
-    def __init__(self, panda, path):
-        self.panda = panda
-        self.path = path
-
-    def all(self):
-        return [Video(json_attr) for json_attr in json.loads(self.panda.get(self.path.format("", "")))]
-
-    def find(self, val):
-        return Video(json.loads(self.panda.get(self.path.format("/", val))))
-
-    def where(self, pred):
-        return [Video(json_attr) for json_attr in json.loads(self.panda.get(self.path.format("", ""))) if pred(json_attr)]
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 class Panda(object):
     def __init__(self, cloud_id, access_key, secret_key, api_host='api.pandastream.com', api_port=443):
@@ -25,11 +13,11 @@ class Panda(object):
         self.api_port = api_port
         self.api_version = 2
 
-        self.videos = Retriever(self, "/videos{}{}.json")
-        self.clouds = Retriever(self, "/clouds{}{}.json")
-        self.encodings = Retriever(self, "/encodings{}{}.json")
-        self.profiles = Retriever(self, "/profiles{}{}.json")
-        self.notifications = Retriever(self, "/notifications{}{}.json")
+        self.videos = Retriever(self, Video, "/videos")
+        self.clouds = Retriever(self, Cloud, "/clouds")
+        self.encodings = Retriever(self, Encoding, "/encodings")
+        self.profiles = Retriever(self, Profile, "/profiles")
+        self.notifications = Retriever(self, Notification, "/notifications")
 
     def credentials(self):
         cred = [

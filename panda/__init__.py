@@ -1,5 +1,5 @@
 from request import PandaRequest
-from models import Video, Cloud, Encoding, Profile, Notification, Retriever
+from models import Video, Cloud, Encoding, Profile, Notification, GroupRetriever, SingleRetriever
 import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -13,11 +13,11 @@ class Panda(object):
         self.api_port = api_port
         self.api_version = 2
 
-        self.videos = Retriever(self, Video, "/videos")
-        self.clouds = Retriever(self, Cloud, "/clouds")
-        self.encodings = Retriever(self, Encoding, "/encodings")
-        self.profiles = Retriever(self, Profile, "/profiles")
-        self.notifications = Retriever(self, Notification, "/notifications")
+        self.videos = GroupRetriever(self, Video, "/videos")
+        self.clouds = GroupRetriever(self, Cloud, "/clouds")
+        self.encodings = GroupRetriever(self, Encoding, "/encodings")
+        self.profiles = GroupRetriever(self, Profile, "/profiles")
+        self.notifications = SingleRetriever(self, Notification, "/notifications")
 
     def credentials(self):
         cred = [

@@ -10,6 +10,9 @@ class Retriever(object):
         else:
             self.path = model_type.path
 
+    def new(self):
+        return self.model_type(self.panda)
+
 class GroupRetriever(Retriever):        
     def all(self): 
         json_data = self.panda.get("{0}.json".format(self.path))
@@ -43,24 +46,22 @@ class Video(PandaModel):
     path = "/videos"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Video, self).__init__(panda, json_attr, *args, **kwargs)
+
         self.panda = panda
-        self.encodings = GroupRetriever(panda, Encoding, "/videos/{}/encodings".format(self.get("id"))).all
-        self.metadata = SingleRetriever(panda, Metadata, "videos/{}/metadata".format(self.get("id"))).get
+        self.encodings = GroupRetriever(panda, Encoding, "/videos/{}/encodings".format(self["id"])).all
+        self.metadata = SingleRetriever(panda, Metadata, "videos/{}/metadata".format(self["id"])).get
+
+        self["cloud_id"] = self.panda.cloud_id
 
 class Cloud(PandaModel):
     path = "/clouds"
-    def videos(self):
-        pass
-
-    def profiles(self):
-        pass
 
 class Encoding(PandaModel):
     path = "/encodings"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
-        self.video = SingleRetriever(self.panda, Video, "/videos/{}".format(self.get("video_id"))).get
-        self.profile = SingleRetriever(self.panda, Video, "/profiles/{}".format(self.get("video_id"))).get
+        self.video = SingleRetriever(self.panda, Video, "/videos/{}".format(self["video_id"])).get
+        self.profile = SingleRetriever(self.panda, Video, "/profiles/{}".format(self["video_id")).get
     
 class Profile(PandaModel):
     path = "/profiles"

@@ -10,8 +10,8 @@ class Retriever(object):
         else:
             self.path = model_type.path
 
-    def new(self):
-        return self.model_type(self.panda)
+    def new(self, *args, **kwargs):
+        return self.model_type(self.panda, *args, **kwargs)
 
 class GroupRetriever(Retriever):        
     def all(self): 
@@ -42,32 +42,40 @@ class PandaModel(dict):
     def to_json(self, *args, **kwargs):
         return json.dumps(self, *args, **kwargs)
 
+class Updatable(object):
+    def save(self):
+        return type(self)(self.panda, json.loads(self.panda.put("{0}/{1}.json".format(self.path, self["id"]), self)))
+
 class Video(PandaModel):
     path = "/videos"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Video, self).__init__(panda, json_attr, *args, **kwargs)
 
-        self.panda = panda
-        self.encodings = GroupRetriever(panda, Encoding, "/videos/{}/encodings".format(self["id"])).all
-        self.metadata = SingleRetriever(panda, Metadata, "videos/{}/metadata".format(self["id"])).get
+        self.encodings = GroupRetriever(panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all
+        self.metadata = SingleRetriever(panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get
 
-        self["cloud_id"] = self.panda.cloud_id
+        self["cloud_id"] = panda.cloud_id
 
-class Cloud(PandaModel):
+class Cloud(PandaModel, Updatable):
     path = "/clouds"
 
 class Encoding(PandaModel):
     path = "/encodings"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
-        self.video = SingleRetriever(self.panda, Video, "/videos/{}".format(self["video_id"])).get
-        self.profile = SingleRetriever(self.panda, Video, "/profiles/{}".format(self["video_id")).get
-    
-class Profile(PandaModel):
+        self.video = SingleRetriever(self.panda, Video, "/videos/{0}".format(self["video_id"])).get
+        # TODO: consider the case when user provide profile_id instead
+        self.profile = SingleRetriever(self.panda, Video, "/profiles/{0}".format(self["profile_name"])).get
+
+class Profile(PandaModel, Updatable):
     path = "/profiles"
 
-class Notification(PandaModel):
+class Notification(PandaModel, Updatable):
     path = "/notifications"
+
+    def save(self):
+        return Notification(self.panda.put("/notifications.json", self))
+
 
 class Metadata(PandaModel):
     pass

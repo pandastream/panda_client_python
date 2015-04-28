@@ -1,7 +1,21 @@
 import json
 import logging
+from functools import wraps
 
 logger = logging.getLogger(__name__)
+
+class PandaError(Exception):
+    pass
+
+def error_check(func):
+    @wraps(func)
+    def check(*args, **kwargs):
+        res = func(*args, **kwargs)
+        if "error" in res:
+            logger.error(res["message"])
+            raise PandaError(res["message"])
+        return res
+    return check
 
 class Retriever(object):
     def __init__(self, panda, model_type, path = None):
@@ -12,26 +26,33 @@ class Retriever(object):
         else:
             self.path = model_type.path
 
+    @error_check
     def new(self, *args, **kwargs):
         return self.model_type(self.panda, *args, **kwargs)
 
+    @error_check
     def create(self, *args, **kwargs):
         return self.new(*args, **kwargs).create()    
 
-class GroupRetriever(Retriever):        
-    def all(self): 
+class GroupRetriever(Retriever):
+    @error_check
+    def _all(self):
         json_data = self.panda.get("{0}.json".format(self.path))
-        return [self.model_type(self.panda, json_attr) for json_attr in json.loads(json_data)]
+        return json.loads(json_data)
 
+    @error_check
     def find(self, val):
         json_data = self.panda.get("{0}/{1}.json".format(self.path, val))
         return self.model_type(self.panda, json.loads(json_data))
 
+    def all(self): 
+        return [self.model_type(self.panda, json_attr) for json_attr in self._all()]
+
     def where(self, pred):
-        json_data = self.panda.get("{0}.json".format(self.path))
-        return [self.model_type(self.panda, json_attr) for json_attr in json.loads(json_data) if pred(json_attr)]
+        return [self.model_type(self.panda, json_attr) for json_attr in self._all() if pred(json_attr)]
 
 class SingleRetriever(Retriever):
+    @error_check
     def get(self):
         json_data = self.panda.get("{0}.json".format(self.path))
         return self.model_type(self.panda, json.loads(json_data))
@@ -53,21 +74,26 @@ class BasicPandaModel(AbstractPandaModel):
         del copy["id"]
         return copy
 
+    @error_check
     def save(self):
         return self.create()
 
+    @error_check
     def create(self):
         return self.panda.post("{0}.json".format(self.path), self)
 
+    @error_check
     def delete(self):
         return self.panda.delete("{0}/{1}.json".format(self.path, self["id"]))
 
 class UpdatablePandaModel(BasicPandaModel):
     changed_values = {}
 
+    @error_check
     def save(self):
         return self.update()
 
+    @error_check
     def update(self):
         put_path = "{0}/{1}.json".format(self.path, self["id"])
         ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self.changed_values)))
@@ -105,6 +131,7 @@ class Profile(UpdatablePandaModel):
 class Notification(UpdatablePandaModel):
     path = "/notifications"
 
+    @error_check
     def save(self):
         tmp = dict(self)
         for event in tmp["events"]:
@@ -112,7 +139,7 @@ class Notification(UpdatablePandaModel):
         return Notification(self.panda.put("/notifications.json", tmp))
 
     def delete(self):
-        pass
+        raise AttributeError("Notification instance has no attribute 'delete'")
 
     def dup(self):
         return self.copy()

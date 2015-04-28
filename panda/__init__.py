@@ -1,5 +1,5 @@
 from request import PandaRequest
-from models import Video, Cloud, Encoding, Profile, Notification, GroupRetriever, SingleRetriever
+from models import Video, Cloud, Encoding, Profile, Notification, GroupRetriever, SingleRetriever, PandaError
 import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

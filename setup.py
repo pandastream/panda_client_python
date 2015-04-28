@@ -5,7 +5,7 @@ setup(
     version='0.2-dev',
     description='A Python implementation of the Panda REST interface',
     author='pandastream.com'
-    author_email='support@pandastream.com'
+    author_email='support@pandastream.com',
     url='http://www.pandastream.com',
     packages=['panda'],
     classifiers=[

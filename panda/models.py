@@ -69,6 +69,10 @@ class AbstractPandaModel(dict):
         return json.dumps(self, *args, **kwargs)
 
 class BasicPandaModel(AbstractPandaModel):
+    def __init__(self, *args, **kwargs):
+        super(BasicPandaModel, self).__init__(*args, **kwargs)
+        self.setdefault("id")
+
     def dup(self):
         copy = self.copy()
         del copy["id"]
@@ -120,6 +124,7 @@ class Encoding(BasicPandaModel):
     path = "/encodings"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
+
         self.video = SingleRetriever(self.panda, Video, "/videos/{0}".format(self["video_id"])).get
 
         key = self["profile_name"] or self["profile_id"]

@@ -1,6 +1,8 @@
 import json
 import logging
 
+logger = logging.getLogger(__name__)
+
 class Retriever(object):
     def __init__(self, panda, model_type, path = None):
         self.panda = panda
@@ -11,7 +13,10 @@ class Retriever(object):
             self.path = model_type.path
 
     def new(self, *args, **kwargs):
-        return self.model_type(self.panda, new=True, *args, **kwargs)
+        return self.model_type(self.panda, *args, **kwargs)
+
+    def create(self, *args, **kwargs):
+        return self.new(*args, **kwargs).create()    
 
 class GroupRetriever(Retriever):        
     def all(self): 
@@ -31,42 +36,38 @@ class SingleRetriever(Retriever):
         json_data = self.panda.get("{0}.json".format(self.path))
         return self.model_type(self.panda, json.loads(json_data))
 
-class PandaModel(dict):
+class AbstractPandaModel(dict):
     def __init__(self, panda, json_attr = None, new=False, *arg, **kwarg):
         self.panda = panda
-        self.new = new
-        self.changed_values = {}
         if json_attr:          
-            super(PandaModel, self).__init__(json_attr, *arg, **kwarg)
+            super(AbstractPandaModel, self).__init__(json_attr, *arg, **kwarg)
         else:
-            super(PandaModel, self).__init__(*arg, **kwarg)
+            super(AbstractPandaModel, self).__init__(*arg, **kwarg)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self, *args, **kwargs)
- 
-    def __setitem__(self, key, val):
-        self.changed_values[key] = val
-        super(PandaModel, self).__setitem__(key, val)
 
+class BasicPandaModel(AbstractPandaModel):
     def dup(self):
         copy = self.copy()
         del copy["id"]
         return copy
 
     def save(self):
-        if self.new:
-            self.create()
-        else:
-            self.update()
+        return self.create()
 
     def create(self):
-        ret = type(self)(self.panda, json.loads(self.panda.post(self.path, self.changed_values)))
-        if "error" not in ret:
-            self.changed_values = {}
-            self.new = False
-        return ret
+        return self.panda.post("{0}.json".format(self.path), self)
 
-class Updatable(object):
+    def delete(self):
+        return self.panda.delete("{0}/{1}.json".format(self.path, self["id"]))
+
+class UpdatablePandaModel(BasicPandaModel):
+    changed_values = {}
+
+    def save(self):
+        return self.update()
+
     def update(self):
         put_path = "{0}/{1}.json".format(self.path, self["id"])
         ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self.changed_values)))
@@ -74,7 +75,11 @@ class Updatable(object):
             self.changed_values = {}
         return ret
 
-class Video(PandaModel):
+    def __setitem__(self, key, val):
+        self.changed_values[key] = val
+        super(UpdatablePandaModel, self).__setitem__(key, val)
+
+class Video(BasicPandaModel):
     path = "/videos"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Video, self).__init__(panda, json_attr, *args, **kwargs)
@@ -82,29 +87,35 @@ class Video(PandaModel):
         self.encodings = GroupRetriever(panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all
         self.metadata = SingleRetriever(panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get
 
-        self["cloud_id"] = panda.cloud_id
-
-class Cloud(PandaModel, Updatable):
+class Cloud(UpdatablePandaModel):
     path = "/clouds"
 
-class Encoding(PandaModel):
+class Encoding(BasicPandaModel):
     path = "/encodings"
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
         self.video = SingleRetriever(self.panda, Video, "/videos/{0}".format(self["video_id"])).get
 
-        # TODO: consider the case when user provide profile_id instead
-        self.profile = SingleRetriever(self.panda, Video, "/profiles/{0}".format(self["profile_name"])).get
+        key = self["profile_name"] or self["profile_id"]
+        self.profile = SingleRetriever(self.panda, Video, "/profiles/{0}".format(key)).get
 
-class Profile(PandaModel, Updatable):
+class Profile(UpdatablePandaModel):
     path = "/profiles"
 
-class Notification(PandaModel, Updatable):
+class Notification(UpdatablePandaModel):
     path = "/notifications"
 
     def save(self):
-        return Notification(self.panda.put("/notifications.json", self))
+        tmp = dict(self)
+        for event in tmp["events"]:
+            tmp["events"][event] = str(tmp["events"][event]).lower()
+        return Notification(self.panda.put("/notifications.json", tmp))
 
+    def delete(self):
+        pass
 
-class Metadata(PandaModel):
+    def dup(self):
+        return self.copy()
+
+class Metadata(AbstractPandaModel):
     pass

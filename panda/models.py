@@ -11,7 +11,7 @@ class Retriever(object):
             self.path = model_type.path
 
     def new(self, *args, **kwargs):
-        return self.model_type(self.panda, *args, **kwargs)
+        return self.model_type(self.panda, new=True, *args, **kwargs)
 
 class GroupRetriever(Retriever):        
     def all(self): 
@@ -32,8 +32,10 @@ class SingleRetriever(Retriever):
         return self.model_type(self.panda, json.loads(json_data))
 
 class PandaModel(dict):
-    def __init__(self, panda, json_attr = None, *arg, **kwarg):
+    def __init__(self, panda, json_attr = None, new=False, *arg, **kwarg):
         self.panda = panda
+        self.new = new
+        self.changed_values = {}
         if json_attr:          
             super(PandaModel, self).__init__(json_attr, *arg, **kwarg)
         else:
@@ -41,10 +43,36 @@ class PandaModel(dict):
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self, *args, **kwargs)
+ 
+    def __setitem__(self, key, val):
+        self.changed_values[key] = val
+        super(PandaModel, self).__setitem__(key, val)
+
+    def dup(self):
+        copy = self.copy()
+        del copy["id"]
+        return copy
+
+    def save(self):
+        if self.new:
+            self.create()
+        else:
+            self.update()
+
+    def create(self):
+        ret = type(self)(self.panda, json.loads(self.panda.post(self.path, self.changed_values)))
+        if "error" not in ret:
+            self.changed_values = {}
+            self.new = False
+        return ret
 
 class Updatable(object):
-    def save(self):
-        return type(self)(self.panda, json.loads(self.panda.put("{0}/{1}.json".format(self.path, self["id"]), self)))
+    def update(self):
+        put_path = "{0}/{1}.json".format(self.path, self["id"])
+        ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self.changed_values)))
+        if "error" not in ret:
+            self.changed_values = {}
+        return ret
 
 class Video(PandaModel):
     path = "/videos"
@@ -64,6 +92,7 @@ class Encoding(PandaModel):
     def __init__(self, panda, json_attr = None, *args, **kwargs):
         super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
         self.video = SingleRetriever(self.panda, Video, "/videos/{0}".format(self["video_id"])).get
+
         # TODO: consider the case when user provide profile_id instead
         self.profile = SingleRetriever(self.panda, Video, "/profiles/{0}".format(self["profile_name"])).get
 

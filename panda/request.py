@@ -4,12 +4,14 @@ import requests
 import urllib
 
 class PandaRequest(object):
-    def __init__(self, verb, path, cred, data={}):
-        self.cred = cred
+    def __init__(self, verb, path, cred, data={}, timestamp=None):
         self.verb = verb.upper()
+        self.path = self.canonical_path(path)
+        self.cred = cred
+        self.data = data
+        self.timestamp = timestamp
 
-        path = self.canonical_path(path)
-        signed_params = self.signed_params(self.verb, path, data)
+        signed_params = self.signed_params()
 
         self.files = None
         if self.verb == 'POST' and ('file' in data):
@@ -21,11 +23,11 @@ class PandaRequest(object):
         req = getattr(requests, self.verb.lower())(self.requests_url, files=self.files)
         return req.text
 
-    def signed_params(self, verb, request_uri, params={}, timestamp_str=None):
-        auth_params = params.copy()
+    def signed_params(self):
+        auth_params = self.data.copy()
         auth_params['cloud_id'] = self.cred["cloud_id"]
         auth_params['access_key'] = self.cred["access_key"]
-        auth_params['timestamp'] = timestamp_str or self.generate_timestamp()
+        auth_params['timestamp'] = self.timestamp or self.generate_timestamp()
         additional_args = auth_params.copy()
         additional_args.update(auth_params)
 
@@ -33,7 +35,7 @@ class PandaRequest(object):
         if 'file' in additional_args:
             del(additional_args['file'])
 
-        auth_params['signature'] = self.generate_signature(verb, request_uri, self.cred["api_host"], self.cred["secret_key"], additional_args)
+        auth_params['signature'] = self.generate_signature(self.verb, self.path, self.cred["api_host"], self.cred["secret_key"], additional_args)
         return auth_params
 
     def api_protocol(self):

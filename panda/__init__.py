@@ -41,3 +41,6 @@ class Panda(object):
 
     def delete(self, request_path, params={}):
         return PandaRequest('DELETE', request_path, self.credentials(), params).send()
+
+    def signed_params(self, verb, path, params={}, timestamp=None):
+        return PandaRequest(verb, path, self.credentials(), params, timestamp).signed_params()

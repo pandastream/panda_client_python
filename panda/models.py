@@ -133,15 +133,15 @@ class Encoding(BasicPandaModel):
 class Profile(UpdatablePandaModel):
     path = "/profiles"
 
-class Notification(UpdatablePandaModel):
+class Notifications(UpdatablePandaModel):
     path = "/notifications"
 
     @error_check
-    def save(self):
+    def update(self):
         tmp = dict(self)
         for event in tmp["events"]:
             tmp["events"][event] = str(tmp["events"][event]).lower()
-        return Notification(self.panda.put("/notifications.json", tmp))
+        return Notifications(self.panda.put("/notifications.json", tmp))
 
     def delete(self):
         raise AttributeError("Notification instance has no attribute 'delete'")

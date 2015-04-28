@@ -1,11 +1,11 @@
 from request import PandaRequest
-from models import Video, Cloud, Encoding, Profile, Notification, GroupRetriever, SingleRetriever, PandaError
+from models import Video, Cloud, Encoding, Profile, Notifications, GroupRetriever, SingleRetriever, PandaError
 import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 class Panda(object):
-    def __init__(self, cloud_id, access_key, secret_key, api_host='api.pandastream.com', api_port=443):
+    def __init__(self, access_key, secret_key, cloud_id=None, api_host='api.pandastream.com', api_port=443):
         self.cloud_id = cloud_id
         self.access_key = access_key
         self.secret_key = secret_key
@@ -17,7 +17,7 @@ class Panda(object):
         self.clouds = GroupRetriever(self, Cloud)
         self.encodings = GroupRetriever(self, Encoding)
         self.profiles = GroupRetriever(self, Profile)
-        self.notifications = SingleRetriever(self, Notification)
+        self.notifications = SingleRetriever(self, Notifications)
 
     def credentials(self):
         cred = [

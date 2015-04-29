@@ -181,12 +181,12 @@ expect (TypeError, ValueError) as e: # handle JSON erros
 
 These two images provide a general idea about working with Panda module. You can either use a REST API to retrieve JSON strings or you can use wrapper objects to retrieve dictionary-like objects. Using simpler API is recommended as you don't have to worry about remembering proper REST path, exceptions messages are more verbose and you don't have to parse returned JSON output on your own in order to query for selected parameters. Returnrd object, besides basic dictionary abilities also contains some additional methods:
 
-| object type | provided methods |
-| - | - |
-| Cloud, Profile | `to_json()`, `dup()`, `create()`, `delete()`, `update()` | 
-| Video, Encoding | `to_json()`, `dup()`, `create()`, `delete()` | 
-| Notifications | `to_json()`, `dup()`, `update()` |
-| Metadata | `to_json()` | 
+object type | provided methods
+------------ | -------------
+Cloud, Profile | `to_json()`, `dup()`, `create()`, `delete()`, `update()`
+Video, Encoding | `to_json()`, `dup()`, `create()`, `delete()`
+Notifications | `to_json()`, `dup()`, `update()`
+Metadata | `to_json()`
 
 Summary of these methods:
 * `to_json()` - turns object into a JSON string using inderlying `json.dump()` call
@@ -197,9 +197,9 @@ Summary of these methods:
 
 In order to get these objects you can use following retriever fields of Panda object:
 
-| retriever | provided methods |
-| - | - |
-Panda.clouds</br>Panda.videos</br>Panda.encodings</br>Panda.profiles | `all()`, `find()`, `where()`
+retriever | provided methods
+------------ | -------------
+Panda.clouds, Panda.videos, Panda.encodings, Panda.profiles | `all()`, `find()`, `where()`
 Panda.notifications | `get()`
 
 Summary of these methods: 

@@ -20,7 +20,7 @@ Alternatively you can use `pip`:
 pip install panda
 ```
 
-A third option is to install the module directly from [*github repository*](https://github.com/pandastream/panda_client_python)
+A third option is to install the module directly from github repository:
 
 ```
 git clone https://github.com/pandastream/panda_client_python
@@ -30,7 +30,7 @@ python setup.py  install
 
 Usage
 -----
-To use the module, import it into your application and then create an instance using credentials you can obtain from your account panel at the Panda website:
+To use the module, import it into your application and then create an instance of Panda object using credentials you can obtain from your account panel at the Panda website:
 ```python
 from panda import Panda
 
@@ -42,8 +42,8 @@ panda = Panda(
 )
 ```
 Now you can use this object to work with your Panda account. There are 6 types of objects that you can interact with:
-* Cloud - represent a single cloud that can have multiple videos and profiles
-* Profile - contains settings used to determine how uploaded videos should be processed
+* Cloud - represents a single cloud that can have multiple videos and profiles
+* Profile - contains settings used to determine how should videos be processed
 * Video - a single input video you want to process using Panda
 * Encoding - a single processed output. One video can have multiple output encodings
 * Notifications - contains settings used to determine how can you be notified about encoding progress
@@ -179,12 +179,12 @@ expect (TypeError, ValueError) as e: # handle JSON erros
     print(e)
 ``` 
 
-These two images provide a general idea about working with Panda module. You can either use a REST API to retrieve JSON strings or you can use wrapper objects to retrieve dictionary-like objects. Using simpler API is recommended as you don't have to worry about remembering proper REST path, exceptions messages are more verbose and you don't have to parse returned JSON output on your own in order to query for selected parameters. Returnrd object, besides basic dictionary abilities also contains some additional methods:
+These two examples provide a general idea about working with Panda module. You can either use a REST API to retrieve JSON strings or you can use wrapper objects to retrieve dictionary-like objects. Using simpler API is recommended as you don't have to worry about remembering proper REST path, exceptions messages are more verbose and you don't have to parse returned JSON output on your own in order to query for selected parameters. Returnrd object, besides basic dictionary abilities, also contains some additional methods:
 
 object type | provided methods
 ------------ | -------------
-Cloud, Profile | `to_json()`, `dup()`, `create()`, `delete()`, `update()`
-Video, Encoding | `to_json()`, `dup()`, `create()`, `delete()`
+Cloud</br>Profile | `to_json()`, `dup()`, `create()`, `delete()`, `update()`
+Video</br>Encoding | `to_json()`, `dup()`, `create()`, `delete()`
 Notifications | `to_json()`, `dup()`, `update()`
 Metadata | `to_json()`
 
@@ -199,13 +199,15 @@ In order to get these objects you can use following retriever fields of Panda ob
 
 retriever | provided methods
 ------------ | -------------
-Panda.clouds, Panda.videos, Panda.encodings, Panda.profiles | `all()`, `find()`, `where()`
+Panda.clouds</br>Panda.videos</br>Panda.encodings</br>Panda.profiles | `all()`, `find()`, `where()`, `new()`, `create()`
 Panda.notifications | `get()`
 
 Summary of these methods: 
 * `all()` - retrieves all objects of the given type
 * `find()` - retrieves a single object of the given type and ID
-* `wgere()` - retrieves a subset of all objects of the given type that pass provided predicate. WARNING: this is only a convenience method as it doesn't optimize database query - all objects of given type are retrieved and then filtered
+* `where()` - retrieves a subset of all objects of the given type that pass provided predicate. WARNING: this is only a convenience method as it doesn't optimize database query - all objects of given type are retrieved and then filtered
+* `new()` - create a new instance of the given type. Parameters to be inserted are passed as a named arguments.
+* `create()` - create a new instance of the given type and then calls its `create()` method to save it into the database
 * `get()` - retrieves single object of the given type
 
 Some objects also have special methods that allows them to retrieve objects related to them:
@@ -215,7 +217,7 @@ Some objects also have special methods that allows them to retrieve objects rela
 
 Simple API Examples
 ------------------ 
-Exception handling ommited for brevity.
+Exception handling are usually ommited for brevity.
 
 Retrieve various objects and count them:
 ```python
@@ -312,7 +314,7 @@ notif = panda.notifications.get()
 print(notif.to_json(indent=2))
 ```
 
-Delete a profile:
+Create and then delete a profile:
 ```python
 panda.profiles.create(preset_name="h264", name="MyProfile")
 
@@ -322,7 +324,7 @@ print(prof.to_json(indent=2))
 prof.delete()
 
 try:
-    prof = panda.profiles.find("MyProfile")
+    prof = panda.profiles.find("MyProfile") # it should fail with PandaError now
     print(prof.to_json(indent=2))
 except PandaError as e:
     print(e)

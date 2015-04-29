@@ -26,6 +26,12 @@ class Retriever(object):
         else:
             self.path = model_type.path
 
+class GroupRetriever(Retriever):
+    @error_check
+    def _all(self):
+        json_data = self.panda.get("{0}.json".format(self.path))
+        return json.loads(json_data)
+
     @error_check
     def new(self, *args, **kwargs):
         return self.model_type(self.panda, *args, **kwargs)
@@ -33,12 +39,6 @@ class Retriever(object):
     @error_check
     def create(self, *args, **kwargs):
         return self.new(*args, **kwargs).create()    
-
-class GroupRetriever(Retriever):
-    @error_check
-    def _all(self):
-        json_data = self.panda.get("{0}.json".format(self.path))
-        return json.loads(json_data)
 
     @error_check
     def find(self, val):

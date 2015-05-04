@@ -28,8 +28,8 @@ class Retriever(object):
 
 class GroupRetriever(Retriever):
     @error_check
-    def _all(self):
-        json_data = self.panda.get("{0}.json".format(self.path))
+    def _all(self, **kwargs):
+        json_data = self.panda.get("{0}.json".format(self.path), kwargs)
         return json.loads(json_data)
 
     @error_check
@@ -41,20 +41,20 @@ class GroupRetriever(Retriever):
         return self.new(*args, **kwargs).create()    
 
     @error_check
-    def find(self, val):
-        json_data = self.panda.get("{0}/{1}.json".format(self.path, val))
+    def find(self, val, **kwargs):
+        json_data = self.panda.get("{0}/{1}.json".format(self.path, val), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
 
-    def all(self): 
-        return [self.model_type(self.panda, json_attr) for json_attr in self._all()]
+    def all(self, **kwargs): 
+        return [self.model_type(self.panda, json_attr) for json_attr in self._all(**kwargs)]
 
-    def where(self, pred):
-        return [self.model_type(self.panda, json_attr) for json_attr in self._all() if pred(json_attr)]
+    def where(self, pred, **kwargs):
+        return [self.model_type(self.panda, json_attr) for json_attr in self._all(**kwargs) if pred(json_attr)]
 
 class SingleRetriever(Retriever):
     @error_check
-    def get(self):
-        json_data = self.panda.get("{0}.json".format(self.path))
+    def get(self, **kwargs):
+        json_data = self.panda.get("{0}.json".format(self.path), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
 
 class AbstractPandaModel(dict):

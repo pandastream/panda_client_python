@@ -30,17 +30,17 @@ class Panda(object):
         ]
         return {key: self.__dict__[key] for key in cred }
 
-    def get(self, request_path, params={}):
-        return PandaRequest('GET', request_path, self.credentials(), params).send()
+    def get(self, request_path, **kwargs):
+        return PandaRequest('GET', request_path, self.credentials(), kwargs).send()
 
-    def post(self, request_path, params={}):
-        return PandaRequest('POST', request_path, self.credentials(), params).send()
+    def post(self, request_path, **kwargs):
+        return PandaRequest('POST', request_path, self.credentials(), kwargs).send()
 
-    def put(self, request_path, params={}):
-        return PandaRequest('PUT', request_path, self.credentials(), params).send()
+    def put(self, request_path, **kwargs):
+        return PandaRequest('PUT', request_path, self.credentials(), kwargs).send()
 
-    def delete(self, request_path, params={}):
-        return PandaRequest('DELETE', request_path, self.credentials(), params).send()
+    def delete(self, request_path, **kwargs):
+        return PandaRequest('DELETE', request_path, self.credentials(), kwargs).send()
 
-    def signed_params(self, verb, path, params={}, timestamp=None):
-        return PandaRequest(verb, path, self.credentials(), params, timestamp).signed_params()
+    def signed_params(self, verb, path, timestamp=None, **kwargs):
+        return PandaRequest(verb, path, self.credentials(), kwargs, timestamp).signed_params()

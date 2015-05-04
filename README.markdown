@@ -265,10 +265,18 @@ for encoding in encodings:
     print(encoding.to_json(indent=2))
 ```
 
-Retrieve encodings of a video:
+Retrieve all encodings of a video:
 ```python
 video = panda.videos.find("71857d3a21b765ad585a151b9618c583")
 encodings = video.encodings()
+for encoding in encodings:
+    print(encoding.to_json(indent=2))
+```
+
+Retrieve failed encodings of a video:
+```python
+video = panda.videos.find("71857d3a21b765ad585a151b9618c583")
+encodings = video.encodings(status="fail") # could be also "success" or "processing"
 for encoding in encodings:
     print(encoding.to_json(indent=2))
 ```
@@ -337,7 +345,7 @@ panda.videos.create(source_url="http://s3.amazonaws.com/marcins-bucket/t.mp4")
 print(len(panda.videos.all()))
 ```
 
-More examples are avilable at [**Panda API documentation**](https://www.pandastream.com/docs#api).
+More examples and descriptions of optional named parameters are avilable at [**Panda API documentation**](https://www.pandastream.com/docs#api).
 
 REST API Examples
 ----------------
@@ -395,17 +403,15 @@ All requests to your Panda cloud are signed using HMAC-SHA256, based on a timest
 
 To do this, a method `signed_params()` is provided:
 
-```python
 panda.signed_params('POST', '/videos.json')
 # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',
 # 'cloud_id': 'your-cloud-id',
 # 'signature': 'LejCdm0O83+jk6/Q5SfGmk14WTO1pB6Sh6Z5eA2w5C0=',
 # 'timestamp': '2010-02-26T15:01:46.221513'}
 
-panda.signed_params('GET', '/videos.json', {'some_params': 'some_value'})
+panda.signed_params('GET', '/videos.json', some_params='some_value')
 # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',
 #  'cloud_id': 'your-cloud-id',
 #  'signature': 'uHnGZ+kI9mT3C4vW71Iop9z2N7UKCv38v2l2dvREUIQ=',
 #  'some_param': 'some_value',
 #  'timestamp': '2010-02-26T15:04:27.039620'}
-```

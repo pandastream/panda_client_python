@@ -88,12 +88,13 @@ class BasicPandaModel(AbstractPandaModel):
 
     @error_check
     def create(self, **kwargs):
-        json_data = self.panda.post("{0}.json".format(self.path), **kwargs)
+        json_data = self.panda.post("{0}.json".format(self.path), kwargs)
         return self.__class__(self.panda, json.loads(json_data))
 
     @error_check
     def delete(self, **kwargs):
-        return self.panda.delete("{0}/{1}.json".format(self.path, self["id"]), kwargs)
+        json_data = self.panda.delete("{0}/{1}.json".format(self.path, self["id"]), kwargs)
+        return self.__class__(self.panda, json.loads(json_data))
 
 class UpdatablePandaModel(BasicPandaModel):
     changed_values = {}

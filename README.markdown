@@ -409,7 +409,7 @@ panda.signed_params('POST', '/videos.json')
 # 'signature': 'LejCdm0O83+jk6/Q5SfGmk14WTO1pB6Sh6Z5eA2w5C0=',
 # 'timestamp': '2010-02-26T15:01:46.221513'}
 
-panda.signed_params('GET', '/videos.json', some_params='some_value')
+panda.signed_params('GET', '/videos.json', {"some_params": "some_value"})
 # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',
 #  'cloud_id': 'your-cloud-id',
 #  'signature': 'uHnGZ+kI9mT3C4vW71Iop9z2N7UKCv38v2l2dvREUIQ=',

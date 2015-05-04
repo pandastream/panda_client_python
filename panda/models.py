@@ -10,10 +10,14 @@ class PandaError(Exception):
 def error_check(func):
     @wraps(func)
     def check(*args, **kwargs):
-        res = func(*args, **kwargs)
-        if "error" in res:
-            logger.error(res["message"])
-            raise PandaError(res["message"])
+        try:
+            res = func(*args, **kwargs)
+            if "error" in res:
+                logger.error(res["message"])
+                raise PandaError(res["message"])
+        except Exception as e:
+            logger.error(e)
+            raise
         return res
     return check
 
@@ -38,7 +42,7 @@ class GroupRetriever(Retriever):
 
     @error_check
     def create(self, *args, **kwargs):
-        return self.new(*args, **kwargs).create()    
+        return self.new(*args, **kwargs).create(**kwargs) 
 
     @error_check
     def find(self, val, **kwargs):
@@ -83,12 +87,13 @@ class BasicPandaModel(AbstractPandaModel):
         return self.create()
 
     @error_check
-    def create(self):
-        return self.panda.post("{0}.json".format(self.path), self)
+    def create(self, **kwargs):
+        json_data = self.panda.post("{0}.json".format(self.path), **kwargs)
+        return self.__class__(self.panda, json.loads(json_data))
 
     @error_check
-    def delete(self):
-        return self.panda.delete("{0}/{1}.json".format(self.path, self["id"]))
+    def delete(self, **kwargs):
+        return self.panda.delete("{0}/{1}.json".format(self.path, self["id"]), kwargs)
 
 class UpdatablePandaModel(BasicPandaModel):
     changed_values = {}

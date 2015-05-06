@@ -117,24 +117,25 @@ class UpdatablePandaModel(BasicPandaModel):
 
 class Video(BasicPandaModel):
     path = "/videos"
-    def __init__(self, panda, json_attr = None, *args, **kwargs):
-        super(Video, self).__init__(panda, json_attr, *args, **kwargs)
 
-        self.encodings = GroupRetriever(panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all
-        self.metadata = SingleRetriever(panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get
+    def encodings(self):
+        return GroupRetriever(panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all()
+
+    def metadata(self):
+        return SingleRetriever(panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get()
 
 class Cloud(UpdatablePandaModel):
     path = "/clouds"
 
 class Encoding(BasicPandaModel):
     path = "/encodings"
-    def __init__(self, panda, json_attr = None, *args, **kwargs):
-        super(Encoding, self).__init__(panda, json_attr, *args, **kwargs)
 
-        self.video = SingleRetriever(self.panda, Video, "/videos/{0}".format(self["video_id"])).get
+    def video(self):
+        return SingleRetriever(self.panda, Video, "/videos/{0}".format(self["video_id"])).get()
 
+    def profile(self):
         key = self["profile_name"] or self["profile_id"]
-        self.profile = SingleRetriever(self.panda, Video, "/profiles/{0}".format(key)).get
+        return SingleRetriever(self.panda, Video, "/profiles/{0}".format(key)).get()
 
 class Profile(UpdatablePandaModel):
     path = "/profiles"

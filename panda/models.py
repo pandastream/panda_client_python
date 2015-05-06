@@ -61,21 +61,24 @@ class SingleRetriever(Retriever):
         json_data = self.panda.get("{0}.json".format(self.path), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
 
-class AbstractPandaModel(dict):
+class DictRetriever(Retriever):
+    def get(self, **kwargs):
+        return self.panda.get("{0}.json".format(self.path), **kwargs)
+
+    def post(self, **kwargs):
+        return self.panda.post("{0}.json".format(self.path), **kwargs)
+
+class BasicPandaModel(dict):
     def __init__(self, panda, json_attr = None, new=False, *arg, **kwarg):
         self.panda = panda
         if json_attr:          
-            super(AbstractPandaModel, self).__init__(json_attr, *arg, **kwarg)
+            super(BasicPandaModel, self).__init__(json_attr, *arg, **kwarg)
         else:
-            super(AbstractPandaModel, self).__init__(*arg, **kwarg)
+            super(BasicPandaModel, self).__init__(*arg, **kwarg)
+        self.setdefault("id")
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self, *args, **kwargs)
-
-class BasicPandaModel(AbstractPandaModel):
-    def __init__(self, *args, **kwargs):
-        super(BasicPandaModel, self).__init__(*args, **kwargs)
-        self.setdefault("id")
 
     def dup(self):
         copy = self.copy()
@@ -122,7 +125,7 @@ class Video(BasicPandaModel):
         return GroupRetriever(panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all()
 
     def metadata(self):
-        return SingleRetriever(panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get()
+        return DictRetriever(self.panda, None, "/videos/{0}/metadata".format(self["id"])).get()
 
 class Cloud(UpdatablePandaModel):
     path = "/clouds"
@@ -136,6 +139,12 @@ class Encoding(BasicPandaModel):
     def profile(self):
         key = self["profile_name"] or self["profile_id"]
         return SingleRetriever(self.panda, Video, "/profiles/{0}".format(key)).get()
+
+    def cancel(self):
+        return DictRetriever(self.panda, None, "/encodings/{0}/cancel".format(self["id"])).post()
+ 
+    def retry(self):
+        return DictRetriever(self.panda, None, "/encodings/{0}/retry".format(self["id"])).post()
 
 class Profile(UpdatablePandaModel):
     path = "/profiles"
@@ -155,6 +164,3 @@ class Notifications(UpdatablePandaModel):
 
     def dup(self):
         return self.copy()
-
-class Metadata(AbstractPandaModel):
-    pass

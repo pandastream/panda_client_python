@@ -61,20 +61,24 @@ class SingleRetriever(Retriever):
         json_data = self.panda.get("{0}.json".format(self.path), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
 
-class AbstractPandaModel(dict):
+    def post(self, **kwargs):
+        json_data = self.panda.post("{0}.json".format(self.path), **kwargs)
+        return self.model_type(self.panda, json.loads(json_data))
+
+class PandaDict(dict):
     def __init__(self, panda, json_attr = None, new=False, *arg, **kwarg):
         self.panda = panda
         if json_attr:          
-            super(AbstractPandaModel, self).__init__(json_attr, *arg, **kwarg)
+            super(PandaDict, self).__init__(json_attr, *arg, **kwarg)
         else:
-            super(AbstractPandaModel, self).__init__(*arg, **kwarg)
+            super(PandaDict, self).__init__(*arg, **kwarg)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self, *args, **kwargs)
 
-class BasicPandaModel(AbstractPandaModel):
+class PandaModel(PandaDict):
     def __init__(self, *args, **kwargs):
-        super(BasicPandaModel, self).__init__(*args, **kwargs)
+        super(PandaModel, self).__init__(*args, **kwargs)
         self.setdefault("id")
 
     def dup(self):
@@ -96,7 +100,7 @@ class BasicPandaModel(AbstractPandaModel):
         json_data = self.panda.delete("{0}/{1}.json".format(self.path, self["id"]), kwargs)
         return self.__class__(self.panda, json.loads(json_data))
 
-class UpdatablePandaModel(BasicPandaModel):
+class UpdatablePandaModel(PandaModel):
     changed_values = {}
 
     @error_check
@@ -115,19 +119,19 @@ class UpdatablePandaModel(BasicPandaModel):
         self.changed_values[key] = val
         super(UpdatablePandaModel, self).__setitem__(key, val)
 
-class Video(BasicPandaModel):
+class Video(PandaModel):
     path = "/videos"
 
     def encodings(self):
-        return GroupRetriever(panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all()
+        return GroupRetriever(self.panda, Encoding, "/videos/{0}/encodings".format(self["id"])).all()
 
     def metadata(self):
-        return SingleRetriever(panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get()
+        return SingleRetriever(self.panda, Metadata, "/videos/{0}/metadata".format(self["id"])).get()
 
 class Cloud(UpdatablePandaModel):
     path = "/clouds"
 
-class Encoding(BasicPandaModel):
+class Encoding(PandaModel):
     path = "/encodings"
 
     def video(self):
@@ -136,6 +140,12 @@ class Encoding(BasicPandaModel):
     def profile(self):
         key = self["profile_name"] or self["profile_id"]
         return SingleRetriever(self.panda, Video, "/profiles/{0}".format(key)).get()
+
+    def cancel(self):
+        return SingleRetriever(self.panda, PandaDict, "/encodings/{0}/cancel.json".format(self["id"])).post()
+
+    def retry(self):
+        return SingleRetriever(self.panda, PandaDict, "/encodings/{0}/retry.json".format(self["id"])).post()
 
 class Profile(UpdatablePandaModel):
     path = "/profiles"
@@ -156,5 +166,5 @@ class Notifications(UpdatablePandaModel):
     def dup(self):
         return self.copy()
 
-class Metadata(AbstractPandaModel):
+class Metadata(PandaDict):
     pass

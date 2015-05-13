@@ -1,6 +1,8 @@
 import json
 import logging
+from requests import post
 from functools import wraps
+from os import stat
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +44,14 @@ class GroupRetriever(Retriever):
 
     @error_check
     def create(self, *args, **kwargs):
-        return self.new(*args, **kwargs).create(**kwargs) 
+        return self.new(*args, **kwargs).create(**kwargs)
 
     @error_check
     def find(self, val, **kwargs):
         json_data = self.panda.get("{0}/{1}.json".format(self.path, val), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
 
-    def all(self, **kwargs): 
+    def all(self, **kwargs):
         return [self.model_type(self.panda, json_attr) for json_attr in self._all(**kwargs)]
 
     def where(self, pred, **kwargs):
@@ -61,6 +63,7 @@ class SingleRetriever(Retriever):
         json_data = self.panda.get("{0}.json".format(self.path), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
 
+    @error_check
     def post(self, **kwargs):
         json_data = self.panda.post("{0}.json".format(self.path), **kwargs)
         return self.model_type(self.panda, json.loads(json_data))
@@ -68,7 +71,7 @@ class SingleRetriever(Retriever):
 class PandaDict(dict):
     def __init__(self, panda, json_attr = None, new=False, *arg, **kwarg):
         self.panda = panda
-        if json_attr:          
+        if json_attr:
             super(PandaDict, self).__init__(json_attr, *arg, **kwarg)
         else:
             super(PandaDict, self).__init__(*arg, **kwarg)
@@ -118,6 +121,64 @@ class UpdatablePandaModel(PandaModel):
     def __setitem__(self, key, val):
         self.changed_values[key] = val
         super(UpdatablePandaModel, self).__setitem__(key, val)
+
+class UploadSession(object):
+    def __init__(panda, file_name):
+        self.panda = panda
+        self.file_name = file_name
+        self.file_size = stat(file_name).st_size
+        data = panda.post('/videos/upload.json', {
+            "file_size": self.file_size,
+            "file_name": file_name})
+        self.location = json.loads(data)["location"]
+        self.status = "initialized"
+        self.video = None
+        self.error_message = None
+
+    def _read_chunks(self):
+        i = 0
+        while True:
+            data = file_object.read(CHUNK_SIZE)
+            if not data:
+                break
+            yield (data, i)
+            i = i+1
+
+    def start(self, pos=0):
+        self.status = "processing"
+        with open(file_name) as f:
+            try:
+                for chunk, i in read_chunks(f):
+                    index = i * CHUNK_SIZE
+
+                    res = post(self.location, headers = {
+                        'Content-Type': 'application/octet-stream',
+                        'Cache-Control': 'no-cache',
+                        'Content-Range': "bytes {0}-{1}/{2}".format(pos + index, pos + index+CHUNK_SIZE-1, self.file_size),
+                        'Content-Length': str(CHUNK_SIZE)
+                    }, data=chunk)
+                    if res.status_code == 200:
+                        self.video = Video.new(self.panda, json_attr=res.json())
+                    else:
+                        self.status = "error"
+                        break
+            except Exception as e:
+                self.status = "error"
+                self.error_message = str(e)
+
+    def resume(self):
+        res = post(self.location, headers = {
+            'Content-Type': 'application/octet-stream',
+            'Cache-Control': 'no-cache',
+            'Content-Range': "bytes */{0}".format(self.file_size),
+            'Content-Length': "0"
+        })
+        pos = res["Range"].split("-")[0]
+
+    def abort(self):
+        if status != "success":
+            self.status = "aborted"
+            self.error_message = None
 
 class Video(PandaModel):
     path = "/videos"

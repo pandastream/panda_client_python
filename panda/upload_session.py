@@ -50,9 +50,7 @@ class UploadSession(object):
                         if res.status_code == 200:
                             self.status = "downloaded"
                             self.video = Video(self.panda, json_attr=res.json())
-                        elif res.status_code == 204:
-                            print(res.headers["range"])
-                        else:
+                        elif res.status_code != 204:
                             self.status = "error"
                             break
                 except Exception as e:

@@ -87,6 +87,11 @@ class PandaModel(PandaDict):
         del copy["id"]
         return copy
 
+    def reload(self):
+        json_data = self.panda.get("{0}/{1}.json".format(self.path, self["id"]))
+        self.clear()
+        self.update(json.loads(json_data))
+
     @error_check
     def save(self):
         return self.create()

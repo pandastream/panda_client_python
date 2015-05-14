@@ -1,8 +1,8 @@
 from request import PandaRequest
 from models import Video, Cloud, Encoding, Profile, Notifications
 from models import GroupRetriever, SingleRetriever
-from models import UploadSession
 from models import PandaError
+from upload_session import UploadSession
 import logging
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -48,5 +48,5 @@ class Panda(object):
     def signed_params(self, verb, path, timestamp=None, params={}):
         return PandaRequest(verb, path, self.credentials(), params, timestamp).signed_params()
 
-    def upload_session(self, path):
-        return UploadSession(self, path)
+    def upload_session(self, path, **kwargs):
+        return UploadSession(self, path, **kwargs)

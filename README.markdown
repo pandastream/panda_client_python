@@ -403,6 +403,7 @@ All requests to your Panda cloud are signed using HMAC-SHA256, based on a timest
 
 To do this, a method `signed_params()` is provided:
 
+```
 panda.signed_params('POST', '/videos.json')
 # => {'access_key': '8df50af4-074f-11df-b278-1231350015b1',
 # 'cloud_id': 'your-cloud-id',
@@ -415,3 +416,4 @@ panda.signed_params('GET', '/videos.json', {"some_params": "some_value"})
 #  'signature': 'uHnGZ+kI9mT3C4vW71Iop9z2N7UKCv38v2l2dvREUIQ=',
 #  'some_param': 'some_value',
 #  'timestamp': '2010-02-26T15:04:27.039620'}
+```

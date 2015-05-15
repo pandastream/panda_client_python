@@ -86,14 +86,14 @@ from panda import Panda, PandaError
 panda = Panda(
     api_host = "api-eu.pandastream.com",
     api_port = "443",
-    cloud_id = "1297c22da25dd3ce3ea64513eda642be",
-    access_key = "70a91c7b8d1adeaf25b1",
-    secret_key = "b92dbf4065badf0ca9c4",
+    cloud_id = "1297b11ca25dd3ce3ea64513eda642be",
+    access_key = "7042a47b8d1adeaf25b1",
+    secret_key = "b92ca4b065badf0ca9c4",
 )
 
 # simple API
 try:
-    cloud = panda.clouds.find("1297c22da25dd3ce3ea64513eda642be")
+    cloud = panda.clouds.find("1297b11ca25dd3ce3ea64513eda642be")
     print(cloud["id"])
     print("") 
     print(cloud.to_json(indent=2))
@@ -105,7 +105,7 @@ print("-----")
 # REST AI
 import json    
 try:
-    cloud = json.loads(panda.get("/clouds/1297c22da25dd3ce3ea64513eda642be.json"))
+    cloud = json.loads(panda.get("/clouds/1297b11ca25dd3ce3ea64513eda642be.json"))
     print(cloud["id"])
     print("")
     print(json.dumps(cloud, indent=2))
@@ -116,11 +116,11 @@ expect (TypeError, ValueError) as e: # handle JSON erros
 Result:
 
 ```json
-1297c22da25dd3ce3ea64513eda642be
+1297b11ca25dd3ce3ea64513eda642be
 
 {
   "s3_videos_bucket": "mariusz-bucket", 
-  "id": "1297c22da25dd3ce3ea64513eda642be", 
+  "id": "1297b11ca25dd3ce3ea64513eda642be", 
   "name": "pies", 
   "url": "http://mariusz-bucket.s3.amazonaws.com/", 
   "created_at": "2014/11/05 13:45:14 +0000", 
@@ -128,7 +128,7 @@ Result:
   "updated_at": "2015/04/28 12:37:03 +0000"
 }
 -----
-1297c22da25dd3ce3ea64513eda642be
+1297b11ca25dd3ce3ea64513eda642be
 
 {
   "s3_videos_bucket": "mariusz-bucket", 
@@ -136,12 +136,37 @@ Result:
   "url": "http://mariusz-bucket.s3.amazonaws.com/", 
   "created_at": "2014/11/05 13:45:14 +0000", 
   "updated_at": "2015/04/28 12:37:03 +0000", 
-  "id": "1297c22da25dd3ce3ea64513eda642be", 
+  "id": "1297b11ca25dd3ce3ea64513eda642be", 
   "name": "pies"
 }
 ```
 
-Similary, if you want to get all your clouds you can use either `panda.get()` with a "/clouds.json" routine or a wrapper method - `panda.clouds.all()`. For example, if you want to iterate over all your clouds to retrieve all your videos you can use following code:
+There is also a shortcut method `cloud_details()`, which allows you to reveive informations about the cloud which id you assigned to a Panda object:
+
+```python
+panda.cloud_id = "1297b11ca25dd3ce3ea64513eda642be"
+try:
+    details = panda.cloud_details()
+    print(details.to_json(indent=2))
+except PandaError as e:
+    print(e)
+```
+
+Result:
+
+```json
+{
+  "s3_videos_bucket": "mariusz-bucket", 
+  "id": "1297b11ca25dd3ce3ea64513eda642be", 
+  "name": "pies", 
+  "url": "http://mariusz-bucket.s3.amazonaws.com/", 
+  "created_at": "2014/11/05 13:45:14 +0000", 
+  "s3_private_access": false, 
+  "updated_at": "2015/05/11 14:12:14 +0000"
+}
+```
+
+If you want to get all your clouds you can use either `panda.get()` with a "/clouds.json" routine or a wrapper method - `panda.clouds.all()`. For example, if you want to iterate over all your clouds to retrieve all your videos you can use following code:
 
 ```python
 from panda import Panda, PandaError
@@ -149,8 +174,8 @@ from panda import Panda, PandaError
 panda = Panda(
     api_host = "api-eu.pandastream.com",
     api_port = "443",
-    access_key = "70a91c7b8d1adeaf25b1",
-    secret_key = "b92dbf4065badf0ca9c4",
+    access_key = "7042a47b8d1adeaf25b1",
+    secret_key = "b92ca4b065badf0ca9c4",
 )
 
 # simple API
@@ -183,17 +208,18 @@ These two examples provide a general idea about working with Panda module. You c
 
 object type | provided methods
 ------------ | -------------
-Cloud</br>Profile | `to_json()`, `dup()`, `create()`, `delete()`, `update()`
-Video</br>Encoding | `to_json()`, `dup()`, `create()`, `delete()`
-Notifications | `to_json()`, `dup()`, `update()`
+Cloud</br>Profile | `to_json()`, `dup()`, `create()`, `delete()`, `save()`, `reload()`
+Video</br>Encoding | `to_json()`, `dup()`, `create()`, `delete()`, `reload()`
+Notifications | `to_json()`, `dup()`, `save()`, `reload()`
 Metadata | `to_json()`
 
 Summary of these methods:
 * `to_json()` - turns object into a JSON string using inderlying `json.dump()` call
 * `dup()` - copies object (same as dictionary built-in method `copy()`) and also remove the "id" parameter, which needs to be unique
 * `create()` - saves object into the database using POST request
-* `update()` - updates object using PUT request
+* `save()` - updates object using PUT request
 * `delete()` - deletes object using DEL request
+* `reload()` - retrieve actual version of an object using another GET request
 
 In order to get these objects you can use following retriever fields of Panda object:
 
@@ -227,9 +253,9 @@ import json
 panda = panda.Panda(
     api_host = "api-eu.pandastream.com",
     api_port = "443",
-    cloud_id = "1297c22da25dd3ce3ea64513eda642be",
-    access_key = "70a91c7b8d1adeaf25b1",
-    secret_key = "b92dbf4065badf0ca9c4",
+    cloud_id = "1297b11ca25dd3ce3ea64513eda642be",
+    access_key = "7042a47b8d1adeaf25b1",
+    secret_key = "b92ca4b065badf0ca9c4",
 )
 
 print("videos")
@@ -300,7 +326,7 @@ prf = panda.profiles.find("2bda90c140d0f79030c45c3dec5ed196")
 print(prf["name"])
 
 prf["name"] = "{0}0".format(prf["name"])
-prf.update()
+prf.save()
 
 prf = panda.profiles.find("2bda90c140d0f79030c45c3dec5ed196")
 print(prf["name"])
@@ -316,7 +342,7 @@ notif["events"] = {
     "encoding_progress": not notif["events"]["encoding_progress"],
     "encoding_completed": True
 }
-notif.update()
+notif.save()
 
 notif = panda.notifications.get()
 print(notif.to_json(indent=2))
@@ -395,6 +421,35 @@ Remove video and profile:
 panda.delete('/videos/VIDEO_ID.json');
 panda.delete('/profiles/PROFILE_ID.json');
 ```
+
+Resumable uploads
+---------------------
+
+You can upload a local video using `panda.videos.create(file="file.mp4")`. This will attempt to upload an entire file using a single POST request. This is undesirable for big files because if the connection broke, the entire uploading process ends up failing. It's very upsetting to retry sending a 5GB file just because something went wrong after readhing 95% mark. Therefore for a local files, especially big ones, it's good to use resumable upload approach. First you have to get an session object using `Panda.upload_session()` method, passing a file as an argument. Then you can start your uploading using its `start()` method. If the connection broke the exception will be raised and then you can decide what to do with your session object using `abort()` or `resume()` method. Current status of the process can be viewed by `status` attribute which can have one of following values:
+* `initialized` - session ready to start
+* `uploading` - uploading started
+* `error` - something went wrong. You can see the details using `error_message` attribute
+* `uploaded` - uploading completed
+* `aborted` - uploading canceled
+* `interrupted` - stopped by user during an interactive session
+
+An example:
+
+```python
+us = panda.upload_session("file.mp4")
+
+retry_count = 0
+try:
+    us.start()
+except Exception as e:
+    while retry_count < 5 and us.status != "success":
+        try:
+            time.sleep(5)            
+            us.resume()
+        except Exception as e:
+            retry_count += 1
+```
+
 
 Generating signatures
 ---------------------

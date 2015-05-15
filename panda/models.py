@@ -90,11 +90,8 @@ class PandaModel(PandaDict):
     def reload(self):
         json_data = self.panda.get("{0}/{1}.json".format(self.path, self["id"]))
         self.clear()
-        self.update(json.loads(json_data))
-
-    @error_check
-    def save(self):
-        return self.create()
+        parsed = json.loads(json_data)
+        self.update(parsed)
 
     @error_check
     def create(self, **kwargs):
@@ -111,10 +108,6 @@ class UpdatablePandaModel(PandaModel):
 
     @error_check
     def save(self):
-        return self.update()
-
-    @error_check
-    def update(self):
         put_path = "{0}/{1}.json".format(self.path, self["id"])
         ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self.changed_values)))
         if "error" not in ret:
@@ -160,7 +153,7 @@ class Notifications(UpdatablePandaModel):
     path = "/notifications"
 
     @error_check
-    def update(self):
+    def save(self):
         tmp = dict(self)
         for event in tmp["events"]:
             tmp["events"][event] = str(tmp["events"][event]).lower()
@@ -171,6 +164,11 @@ class Notifications(UpdatablePandaModel):
 
     def dup(self):
         return self.copy()
+
+    def reload(self):
+        json_data = self.panda.get("/notifications.json")
+        self.clear()
+        self.update(json.loads(json_data))
 
 class Metadata(PandaDict):
     pass

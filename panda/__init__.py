@@ -1,5 +1,5 @@
 from request import PandaRequest
-from models import Video, Cloud, Encoding, Profile, Notifications
+from models import Video, Cloud, Encoding, Profile, Notifications, PandaDict
 from models import GroupRetriever, SingleRetriever
 from models import PandaError
 from upload_session import UploadSession
@@ -50,3 +50,6 @@ class Panda(object):
 
     def upload_session(self, path, **kwargs):
         return UploadSession(self, path, **kwargs)
+
+    def cloud_details(self):
+        return SingleRetriever(self, PandaDict, "/clouds/{0}".format(self.cloud_id)).get()

@@ -3,7 +3,7 @@ from json import loads
 from models import Video
 from os import stat
 
-CHUNK_SIZE = 100 * 1024 # 5 * 1024 * 1024
+CHUNK_SIZE = 5 * 1024 * 1024
 
 class UploadSession(object):
     def __init__(self, panda, file_name, **kwargs):
@@ -34,7 +34,7 @@ class UploadSession(object):
 
     def start(self, pos=0):
         if self.status == "initialized":
-            self.status = "processing"
+            self.status = "uploading"
             with open(self.file_name) as f:
                 f.seek(pos)
                 try:
@@ -48,7 +48,7 @@ class UploadSession(object):
                             'Content-Length': str(CHUNK_SIZE)
                         }, data=chunk)
                         if res.status_code == 200:
-                            self.status = "downloaded"
+                            self.status = "uploaded"
                             self.video = Video(self.panda, json_attr=res.json())
                         elif res.status_code != 204:
                             self.status = "error"
@@ -64,7 +64,7 @@ class UploadSession(object):
             raise KeyError("Already started")
 
     def resume(self):
-        if self.status != "downloaded":
+        if self.status != "uploaded":
             res = post(self.location, headers = {
                 'Content-Type': 'application/octet-stream',
                 'Cache-Control': 'no-cache',

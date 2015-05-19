@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='panda',
-    version='0.2.1-dev',
+    version='0.3.0-dev',
     description='A Python implementation of the Panda REST interface',
     author='pandastream.com'
     author_email='support@pandastream.com',

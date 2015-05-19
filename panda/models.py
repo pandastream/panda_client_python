@@ -47,13 +47,13 @@ class GroupRetriever(Retriever):
     @error_check
     def find(self, val, **kwargs):
         json_data = self.panda.get("{0}/{1}.json".format(self.path, val), **kwargs)
-        return self.model_type(self.panda, json.loads(json_data))
+        return self.model_type(self.panda, **json.loads(json_data))
 
     def all(self, **kwargs):
-        return [self.model_type(self.panda, json_attr) for json_attr in self._all(**kwargs)]
+        return [self.model_type(self.panda, **json_attr) for json_attr in self._all(**kwargs)]
 
     def where(self, pred, **kwargs):
-        return [self.model_type(self.panda, json_attr) for json_attr in self._all(**kwargs) if pred(json_attr)]
+        return [self.model_type(self.panda, **json_attr) for json_attr in self._all(**kwargs) if pred(json_attr)]
 
 class SingleRetriever(Retriever):
     @error_check
@@ -67,12 +67,9 @@ class SingleRetriever(Retriever):
         return self.model_type(self.panda, json.loads(json_data))
 
 class PandaDict(dict):
-    def __init__(self, panda, json_attr = None, new=False, *arg, **kwarg):
+    def __init__(self, panda, *arg, **kwarg):
         self.panda = panda
-        if json_attr:
-            super(PandaDict, self).__init__(json_attr, *arg, **kwarg)
-        else:
-            super(PandaDict, self).__init__(*arg, **kwarg)
+        super(PandaDict, self).__init__(*arg, **kwarg)
 
     def to_json(self, *args, **kwargs):
         return json.dumps(self, *args, **kwargs)
@@ -104,19 +101,11 @@ class PandaModel(PandaDict):
         return self.__class__(self.panda, json.loads(json_data))
 
 class UpdatablePandaModel(PandaModel):
-    changed_values = {}
-
     @error_check
     def save(self):
         put_path = "{0}/{1}.json".format(self.path, self["id"])
-        ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self.changed_values)))
-        if "error" not in ret:
-            self.changed_values = {}
+        ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self)))
         return ret
-
-    def __setitem__(self, key, val):
-        self.changed_values[key] = val
-        super(UpdatablePandaModel, self).__setitem__(key, val)
 
 class Video(PandaModel):
     path = "/videos"

@@ -75,13 +75,10 @@ class PandaDict(dict):
         return json.dumps(self, *args, **kwargs)
 
 class PandaModel(PandaDict):
-    def __init__(self, *args, **kwargs):
-        super(PandaModel, self).__init__(*args, **kwargs)
-        self.setdefault("id")
-
     def dup(self):
         copy = self.copy()
-        del copy["id"]
+        if "id" in copy:
+            copy["id"]
         return copy
 
     def reload(self):
@@ -101,11 +98,36 @@ class PandaModel(PandaDict):
         return self.__class__(self.panda, json.loads(json_data))
 
 class UpdatablePandaModel(PandaModel):
+    changed_values = {}
+
     @error_check
     def save(self):
         put_path = "{0}/{1}.json".format(self.path, self["id"])
-        ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self)))
+        ret = type(self)(self.panda, json.loads(self.panda.put(put_path, self.changed_values)))
+        if "error" not in ret:
+            self.changed_values = {}
         return ret
+
+    def __setitem__(self, key, val):
+        self.changed_values[key] = val
+        super(UpdatablePandaModel, self).__setitem__(key, val)
+
+    # http://stackoverflow.com/a/2588648/1542900
+    def update(self, *args, **kwargs):
+        if args:
+            if len(args) > 1:
+                raise TypeError("update expected at most 1 arguments, got %d" % len(args))
+            other = dict(args[0])
+            for key in other:
+                self[key] = other[key]
+        for key in kwargs:
+            self[key] = kwargs[key]
+
+    # http://stackoverflow.com/a/2588648/1542900
+    def setdefault(self, key, value=None):
+        if key not in self:
+            self[key] = value
+        return self[key]
 
 class Video(PandaModel):
     path = "/videos"
@@ -146,13 +168,10 @@ class Notifications(UpdatablePandaModel):
         tmp = dict(self)
         for event in tmp["events"]:
             tmp["events"][event] = str(tmp["events"][event]).lower()
-        return Notifications(self.panda.put("/notifications.json", tmp))
+        return Notifications(self.panda, json.loads(self.panda.put("/notifications.json", tmp)))
 
     def delete(self):
         raise AttributeError("Notification instance has no attribute 'delete'")
-
-    def dup(self):
-        return self.copy()
 
     def reload(self):
         json_data = self.panda.get("/notifications.json")

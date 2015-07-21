@@ -2,6 +2,7 @@ import hashlib, hmac, base64
 from datetime import datetime, tzinfo, timedelta
 import requests
 import urllib
+import json
 
 class PandaRequest(object):
     def __init__(self, verb, path, cred, data={}, timestamp=None):
@@ -10,6 +11,10 @@ class PandaRequest(object):
         self.cred = cred
         self.data = data
         self.timestamp = timestamp
+
+        for name, val in self.data.iteritems():
+            if isinstance(val, dict):
+                self.data[name] = json.dumps(val)
 
         signed_params = self.signed_params()
 
